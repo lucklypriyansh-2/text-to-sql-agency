@@ -1,0 +1,13 @@
+flask~=3.0.3
+sqlalchemy
+openai
+llama-index
+agency-swarm
+langchain
+langchain_community
+faiss-cpu
+pandas~=2.2.2
+pydantic~=2.8.2
+langchain-community~=0.3.5
+gradio
+flask_cors

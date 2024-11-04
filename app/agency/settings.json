@@ -1,0 +1,410 @@
+[
+    {
+        "id": "asst_gj653Y9mxoyRoSRDs1hakqWF",
+        "created_at": 1730535861,
+        "description": "This agent is responsible for managing high-level decision-making and delegating tasks to the QueryExecutor agent.",
+        "instructions": "# QueryExecutorAgency Manifesto\n\n## Mission\nTo efficiently handle user queries by translating them into executable queries, executing them, and providing visual representations if requested.\n\n## Goals\n- Streamline the process of executing user queries.\n- Provide accurate and timely visualizations of data when required.\n- Ensure seamless communication and task delegation among the agents.\n\n## Working Environment\nThe agency operates in a dynamic environment where user queries are processed and visualized in real-time. The agents work collaboratively to ensure efficient data handling and presentation, leveraging specialized tools for query execution and visualization.\n\n# CEO Agent Instructions\n\nYou are an agent that manages high-level decision-making and delegates tasks to the QueryExecutor agent within the QueryExecutorAgency.\nYour role is to assign task to QueryExecutor and based on it record decide which visaulization best to use \nWe support all the visualization that is supported by recharts \n### Primary Instructions:\n1. Assess the tasks and objectives provided by the user or other agents.\n2. Delegate specific tasks to the QueryExecutor agent, ensuring clarity and completeness in the instructions.\n3. Monitor the progress of the QueryExecutor agent and provide guidance or adjustments as needed.\n4. Understand how the response can be structured in a way that can be visualised using the recharts \n5. Report back to the user with the outcomes or any necessary feedback.\n\n### Important Note:\n Never ask clarifying question or assume , Always pass the request to QueryExecutor and reply only based on data returned from query executor agent\n Your response should be supporting the visualization support by recharts https://recharts.org/",
+        "metadata": {},
+        "model": "gpt-4o-2024-08-06",
+        "name": "CEOAgent",
+        "object": "assistant",
+        "tools": [
+            {
+                "function": {
+                    "name": "SendMessage",
+                    "description": "Use this tool to facilitate direct, synchronous communication between specialized agents within your agency. When you send a message using this tool, you receive a response exclusively from the designated recipient agent. To continue the dialogue, invoke this tool again with the desired recipient agent and your follow-up message. Remember, communication here is synchronous; the recipient agent won't perform any tasks post-response. You are responsible for relaying the recipient agent's responses back to the user, as the user does not have direct access to these replies. Keep engaging with the tool for continuous interaction until the task is fully resolved. Do not send more than 1 message at a time.",
+                    "parameters": {
+                        "$defs": {
+                            "recipient": {
+                                "const": "QueryExecutorAgent",
+                                "enum": [
+                                    "QueryExecutorAgent"
+                                ],
+                                "title": "recipient",
+                                "type": "string"
+                            }
+                        },
+                        "properties": {
+                            "my_primary_instructions": {
+                                "description": "Please repeat your primary instructions step-by-step, including both completed and the following next steps that you need to perform. For multi-step, complex tasks, first break them down into smaller steps yourself. Then, issue each step individually to the recipient agent via the message parameter. Each identified step should be sent in separate message. Keep in mind, that the recipient agent does not have access to these instructions. You must include recipient agent-specific instructions in the message or additional_instructions parameters.",
+                                "title": "My Primary Instructions",
+                                "type": "string"
+                            },
+                            "recipient": {
+                                "allOf": [
+                                    {
+                                        "$ref": "#/$defs/recipient"
+                                    }
+                                ],
+                                "description": "QueryExecutorAgent: This agent is responsible for translating user requests into executable queries, loading relevant tables, schema, and similar queries, and running the query.\n"
+                            },
+                            "message": {
+                                "description": "Specify the task required for the recipient agent to complete. Focus on clarifying what the task entails, rather than providing exact instructions.",
+                                "title": "Message",
+                                "type": "string"
+                            },
+                            "message_files": {
+                                "anyOf": [
+                                    {
+                                        "items": {
+                                            "type": "string"
+                                        },
+                                        "type": "array"
+                                    },
+                                    {
+                                        "type": "null"
+                                    }
+                                ],
+                                "default": null,
+                                "description": "A list of file ids to be sent as attachments to this message. Only use this if you have the file id that starts with 'file-'.",
+                                "examples": [
+                                    "file-1234",
+                                    "file-5678"
+                                ],
+                                "title": "Message Files"
+                            },
+                            "additional_instructions": {
+                                "anyOf": [
+                                    {
+                                        "type": "string"
+                                    },
+                                    {
+                                        "type": "null"
+                                    }
+                                ],
+                                "default": null,
+                                "description": "Additional context or instructions for the recipient agent about the task. For example, additional information provided by the user or other agents.",
+                                "title": "Additional Instructions"
+                            }
+                        },
+                        "required": [
+                            "message",
+                            "my_primary_instructions",
+                            "recipient"
+                        ],
+                        "type": "object"
+                    },
+                    "strict": false
+                },
+                "type": "function"
+            }
+        ],
+        "response_format": {
+            "json_schema": {
+                "name": "CEOAgentResponse",
+                "description": null,
+                "schema_": {
+                    "$defs": {
+                        "ChartConfig": {
+                            "properties": {
+                                "chartType": {
+                                    "description": "The type of chart to render. Supported values are 'line', 'bar',  'pie' and Not Possible in case data points are not suitable for any chart type.",
+                                    "enum": [
+                                        "line",
+                                        "bar",
+                                        "pie",
+                                        "Not Possible"
+                                    ],
+                                    "title": "Charttype",
+                                    "type": "string"
+                                },
+                                "data": {
+                                    "description": "A list of data points, each containing a 'name' and 'value', to plot on the chart.",
+                                    "items": {
+                                        "$ref": "#/$defs/DataPoint"
+                                    },
+                                    "title": "Data",
+                                    "type": "array"
+                                },
+                                "xAxisKey": {
+                                    "description": "The key to be used for values on the x-axis. Should match one of the attributes in 'data'.",
+                                    "title": "Xaxiskey",
+                                    "type": "string"
+                                },
+                                "yAxisKey": {
+                                    "description": "The key to be used for values on the y-axis. Should match one of the attributes in 'data'.",
+                                    "title": "Yaxiskey",
+                                    "type": "string"
+                                }
+                            },
+                            "required": [
+                                "chartType",
+                                "data",
+                                "xAxisKey",
+                                "yAxisKey"
+                            ],
+                            "title": "ChartConfig",
+                            "type": "object",
+                            "additionalProperties": false
+                        },
+                        "DataPoint": {
+                            "properties": {
+                                "name": {
+                                    "description": "The label or name for the data point on the chart.",
+                                    "title": "Name",
+                                    "type": "string"
+                                },
+                                "value": {
+                                    "description": "The numerical value associated with this data point.",
+                                    "items": {
+                                        "$ref": "#/$defs/NameValuePair"
+                                    },
+                                    "title": "Value",
+                                    "type": "array"
+                                }
+                            },
+                            "required": [
+                                "name",
+                                "value"
+                            ],
+                            "title": "DataPoint",
+                            "type": "object",
+                            "additionalProperties": false
+                        },
+                        "NameValuePair": {
+                            "properties": {
+                                "dimensionName": {
+                                    "description": "The name of dimension.",
+                                    "title": "Dimensionname",
+                                    "type": "string"
+                                },
+                                "dimensionValue": {
+                                    "description": "the value of dimension.",
+                                    "title": "Dimensionvalue",
+                                    "type": "string"
+                                }
+                            },
+                            "required": [
+                                "dimensionName",
+                                "dimensionValue"
+                            ],
+                            "title": "NameValuePair",
+                            "type": "object",
+                            "additionalProperties": false
+                        }
+                    },
+                    "properties": {
+                        "chartConfig": {
+                            "description": "The configuration for the chart.",
+                            "properties": {
+                                "chartType": {
+                                    "description": "The type of chart to render. Supported values are 'line', 'bar',  'pie' and Not Possible in case data points are not suitable for any chart type.",
+                                    "enum": [
+                                        "line",
+                                        "bar",
+                                        "pie",
+                                        "Not Possible"
+                                    ],
+                                    "title": "Charttype",
+                                    "type": "string"
+                                },
+                                "data": {
+                                    "description": "A list of data points, each containing a 'name' and 'value', to plot on the chart.",
+                                    "items": {
+                                        "$ref": "#/$defs/DataPoint"
+                                    },
+                                    "title": "Data",
+                                    "type": "array"
+                                },
+                                "xAxisKey": {
+                                    "description": "The key to be used for values on the x-axis. Should match one of the attributes in 'data'.",
+                                    "title": "Xaxiskey",
+                                    "type": "string"
+                                },
+                                "yAxisKey": {
+                                    "description": "The key to be used for values on the y-axis. Should match one of the attributes in 'data'.",
+                                    "title": "Yaxiskey",
+                                    "type": "string"
+                                }
+                            },
+                            "required": [
+                                "chartType",
+                                "data",
+                                "xAxisKey",
+                                "yAxisKey"
+                            ],
+                            "title": "ChartConfig",
+                            "type": "object",
+                            "additionalProperties": false
+                        },
+                        "queryExecutorResponse": {
+                            "description": "The response from the QueryExecutor Translated into a human readable sentence including the every data points and explaining the columns ",
+                            "title": "Queryexecutorresponse",
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "chartConfig",
+                        "queryExecutorResponse"
+                    ],
+                    "title": "CEOAgentResponse",
+                    "type": "object",
+                    "additionalProperties": false
+                },
+                "strict": true
+            },
+            "type": "json_schema"
+        },
+        "temperature": 0.3,
+        "tool_resources": {
+            "code_interpreter": null,
+            "file_search": null
+        },
+        "top_p": 1.0
+    },
+    {
+        "id": "asst_DI9iPJIR9nZnqy29K0HZdw7D",
+        "created_at": 1730535861,
+        "description": "This agent is responsible for translating user requests into executable queries, loading relevant tables, schema, and similar queries, and running the query.",
+        "instructions": "# QueryExecutorAgency Manifesto\n\n## Mission\nTo efficiently handle user queries by translating them into executable queries, executing them, and providing visual representations if requested.\n\n## Goals\n- Streamline the process of executing user queries.\n- Provide accurate and timely visualizations of data when required.\n- Ensure seamless communication and task delegation among the agents.\n\n## Working Environment\nThe agency operates in a dynamic environment where user queries are processed and visualized in real-time. The agents work collaboratively to ensure efficient data handling and presentation, leveraging specialized tools for query execution and visualization.\n\n# QueryExecutor Agent Instructions\n\nYou are an agent that translates user requests into executable queries within the agenct. \nYour role involves loading relevant tables, schema, and similar queries, executing the queries, and providing results.\n\n### Important note:\nThe dialect of the sql query should be sqllite\n\n### Primary Instructions:\n1. Analyze the user request to determine the required data and query structure.\n2. Load the relevant tables ,schemas and related example queries from TableSchemaLoaderAndRelatedQueriesLoader\n3. Understand the reasoning of related queries to understand how data is organised in table \n4. Generate the queries using table schema ,related queries and reasoning\n5. The related queries is example of queries so treat them aws example not as actual queries that  you need to execute so you are free to modify or use another query\n\n\n",
+        "metadata": {},
+        "model": "gpt-4o-2024-08-06",
+        "name": "QueryExecutorAgent",
+        "object": "assistant",
+        "tools": [
+            {
+                "function": {
+                    "name": "QueryExecutor",
+                    "description": "This tool executes a SQL query against a database using SQLAlchemy.\nIt validates the SQL query's syntax, executes it, and returns the results for SELECT queries.",
+                    "parameters": {
+                        "properties": {
+                            "query": {
+                                "description": "The SQL query to be executed.",
+                                "title": "Query",
+                                "type": "string"
+                            }
+                        },
+                        "required": [
+                            "query"
+                        ],
+                        "type": "object"
+                    },
+                    "strict": false
+                },
+                "type": "function"
+            },
+            {
+                "function": {
+                    "name": "TableSchemaLoaderAndRelatedQueriesLoader",
+                    "description": "These tools find the relevant tables and their schemas based on the user's request.'. It uses the vectorized prompt search to find relevant tables and their schemas.\nThis tools also provides example  queries to the user's request. which can be used as examples of queries that can be used to answer the user's request.\nThe related queries should be only treated as examples and should be adapted to the specific use case.The related queries contain reasoning for the example queries.\nwatch carefully the reasoning for the example queries.'\n'",
+                    "parameters": {
+                        "properties": {
+                            "user_request": {
+                                "default": null,
+                                "description": "The refined user's request. which contains all the relevant keywords and phrases from the user's request.",
+                                "title": "User Request",
+                                "type": "string"
+                            }
+                        },
+                        "type": "object",
+                        "required": []
+                    },
+                    "strict": false
+                },
+                "type": "function"
+            }
+        ],
+        "response_format": {
+            "json_schema": {
+                "name": "QueryResponse",
+                "description": null,
+                "schema_": {
+                    "$defs": {
+                        "RowResponse": {
+                            "properties": {
+                                "values": {
+                                    "description": "Values of a row",
+                                    "items": {
+                                        "type": "string"
+                                    },
+                                    "title": "Values",
+                                    "type": "array"
+                                }
+                            },
+                            "required": [
+                                "values"
+                            ],
+                            "title": "RowResponse",
+                            "type": "object",
+                            "additionalProperties": false
+                        }
+                    },
+                    "properties": {
+                        "columns": {
+                            "description": "List of columns ",
+                            "items": {
+                                "type": "string"
+                            },
+                            "title": "Columns",
+                            "type": "array"
+                        },
+                        "rows": {
+                            "description": "List of rows",
+                            "items": {
+                                "$ref": "#/$defs/RowResponse"
+                            },
+                            "title": "Rows",
+                            "type": "array"
+                        }
+                    },
+                    "required": [
+                        "columns",
+                        "rows"
+                    ],
+                    "title": "QueryResponse",
+                    "type": "object",
+                    "additionalProperties": false
+                },
+                "strict": true
+            },
+            "type": "json_schema"
+        },
+        "temperature": 0.3,
+        "tool_resources": {
+            "code_interpreter": null,
+            "file_search": null
+        },
+        "top_p": 1.0
+    },
+    {
+        "id": "asst_JM65NzjNkDiVzk9Kkxb0hVkJ",
+        "created_at": 1730535862,
+        "description": "This agent is responsible for generating visual representations of the queried data within the QueryExecutorAgency.",
+        "instructions": "# QueryExecutorAgency Manifesto\n\n## Mission\nTo efficiently handle user queries by translating them into executable queries, executing them, and providing visual representations if requested.\n\n## Goals\n- Streamline the process of executing user queries.\n- Provide accurate and timely visualizations of data when required.\n- Ensure seamless communication and task delegation among the agents.\n\n## Working Environment\nThe agency operates in a dynamic environment where user queries are processed and visualized in real-time. The agents work collaboratively to ensure efficient data handling and presentation, leveraging specialized tools for query execution and visualization.\n\n# Visualiser Agent Instructions\n\nYou are an agent that generates visual representations of the queried data within the QueryExecutorAgency. Your role involves transforming data into insightful visualizations using libraries like D3.js or Chart.js.\n\n### Primary Instructions:\n1. Receive data from the QueryExecutor agent.\n2. Prepare the data using the Data Preparation Tool.\n3. Generate charts using the Chart Generator Tool.\n4. Customize the visualizations using the Customization Tool to meet user requirements.\n5. Provide the final visual representation back to the QueryExecutor agent or user, as required.",
+        "metadata": {},
+        "model": "gpt-4o",
+        "name": "VisualiserAgent",
+        "object": "assistant",
+        "tools": [
+            {
+                "function": {
+                    "name": "DataPreparationTool",
+                    "description": "This tool prepares queried data for visualization.\nIt cleans, normalizes, and structures the data in a format suitable for generating charts using libraries like D3.js or Chart.js.",
+                    "parameters": {
+                        "properties": {
+                            "data": {
+                                "description": "The queried data as a list of dictionaries, where each dictionary represents a row of data.",
+                                "items": {},
+                                "title": "Data",
+                                "type": "array"
+                            }
+                        },
+                        "required": [
+                            "data"
+                        ],
+                        "type": "object"
+                    },
+                    "strict": false
+                },
+                "type": "function"
+            }
+        ],
+        "response_format": "auto",
+        "temperature": 0.3,
+        "tool_resources": {
+            "code_interpreter": null,
+            "file_search": null
+        },
+        "top_p": 1.0
+    }
+]

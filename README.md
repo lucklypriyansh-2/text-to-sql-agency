@@ -51,6 +51,9 @@ curl --location 'http://127.0.0.1:9090/completions?message=pull%20reuest%20revie
 --data ''
 
   ```
+5. Sequence diagram:
+![Sequence Diagram]([path/to/your/image.png](https://github.com/lucklypriyansh-2/text-to-sql-agency/blob/main/images/Untitled%20(1).png))
+  
 Submit Queries:
 
 Enter your natural language query into the input field and submit. The application will process the input and return the corresponding SQL statement.

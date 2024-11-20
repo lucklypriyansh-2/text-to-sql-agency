@@ -56,6 +56,10 @@ curl --location 'http://127.0.0.1:9090/completions?message=pull%20reuest%20revie
   
 Submit Queries:
 
+
+Additional Resources:
+ https://medium.com/pinterest-engineering/how-we-built-text-to-sql-at-pinterest-30bad30dabff
+
 Enter your natural language query into the input field and submit. The application will process the input and return the corresponding SQL statement.
 
 
